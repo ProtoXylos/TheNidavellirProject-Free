@@ -17,7 +17,7 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 #### **Crash Prevention for Malformed Packets (Instant Message Crash)** 
 
 **Problem**:  
-The crash is caused by malformed or empty messages being sent via the `dw_Instant_Dispatch_Message` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Specifically, the function `send_instant_crash` used by exploiters can send a message with no valid content, potentially leading to buffer overflows or invalid memory accesses.
+The crash is caused by malformed or empty messages being sent via the `dw_Instant_Dispatch_Message` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Specifically, the function `dwInstantSendMessage` used by exploiters can send a message with no valid content, potentially leading to buffer overflows or invalid memory accesses.
 
 **Solution**:  
 To prevent this, the patch modifies the way messages are handled before they are dispatched. Key steps include:
@@ -25,19 +25,13 @@ To prevent this, the patch modifies the way messages are handled before they are
 1. **Empty Message Handling**:  
    The patch checks if the message is empty or contains only whitespace. If this is the case, the message is ignored.
    
-   ```cpp
+```cpp
 
    if (message == nullptr || message_size == 0 || std::all_of(message, message + message_size, [](unsigned char c) { return std::isspace(c); }))
    {
        return true; // Ignored empty or whitespace-only message
    }
 
-```
-
-#### **Invalid Message Read Handling:**
-The patch ensures that the message's size and read count are within expected bounds. If the message has been truncated or incorrectly sized, it prevents further processing.
-
-   ```cpp
 
 if (msg.readcount < msg.cursize)
 {
@@ -48,4 +42,28 @@ else
     return true; // Invalid readcount
 }
 
+if ((type == 102 && message_size == 102) || (type == 102 && message_size == 2))
+{
+    if (message_size == 102)
+        return true; // Ignore a invalid message size
+    else if (message_size == 2)
+        return true; // Ignore 'Lobby not joinable' popup
+}
+
+if (type == 'e')
+{
+    return true; // Ignoring remote 'Cbuf' (Command Buffer)
+}
+
+if (!msg.overflowed)
+{
+    // Further message handling...
+}
+else
+{
+    return true; // Prevent message overflow
+}
 ```
+
+
+
