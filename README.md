@@ -48,8 +48,8 @@ Below is a detailed list of patches included in the tool, along with their fixes
        - **Message Type 'e' (Remote Cbuf Exploit):**  
          The message type 'e' is often used in **remote cbuf** exploits. A message of this type can be crafted to execute commands or trigger actions remotely, such as resetting stats or manipulating game data. An example of an exploit would be calling `dwInstantSendMessage(0, &targetXUID, 1, 'e', "resetStats\n", 11);`, which could execute a command like resetting player stats without proper authorization. This patch prevents this type of message from being processed, effectively blocking remote command execution and maintaining the integrity of the game environment.
 
-       - **Message Type 'f':**  
-         The message type 'f' is used for various malicious actions, such as disrupting game flow or triggering unwanted behaviors. The patch ignores messages of this type, effectively preventing them from being processed and ensuring that they do not cause issues within the game.
+       - **Message Type 'f' (Friend Message Exploit):**  
+         The message type 'f' is used for **friend messages**, which are typically sent between players in the game. However, this message type can be exploited for **remote crashes** or **popup attacks**. Attackers could send malicious messages using this type to crash the client or trigger unwanted popups on the recipient's screen. The patch blocks messages of type 'f', preventing this type of exploit from being executed and protecting players from potential disruptions caused by malicious friend messages.
 
      - **Overflow protection in message parsing:**  
        The patch prevents buffer overflows during message parsing by ensuring that the data being read is within safe bounds. If a message exceeds a set size (e.g., 2048 bytes), it is rejected. This ensures that any attempt to send a message with excessive data that could trigger a crash or corrupt memory is blocked, providing additional protection against overflow exploits.
@@ -57,9 +57,3 @@ Below is a detailed list of patches included in the tool, along with their fixes
      - **Server response handling:**  
        The patch ensures that server responses, such as lobby information responses, are processed securely. It checks the integrity of the server response data and prevents any malicious interactions that could exploit vulnerabilities in the server-client communication.
 
-*(Add more patches in this format as you go.)*  
-
-### Installation  
-1. Clone this repository:  
-   ```bash
-   git clone https://github.com/YourUsername/TheNidavellirProject-Free.git
