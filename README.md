@@ -492,13 +492,15 @@ The `LobbyMSG Inspect HostHeartbBeat` function processes the heartbeat message f
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
+---
+
 ## Spoofing
 
 The **Spoofing** category involves modifying or "spoofing" network-related information to impersonate or hide the true identity of the sender. This can include spoofing security identifiers, IP addresses, and other critical network parameters. The functions in this category modify lobby-related data to simulate different network configurations, often for testing or exploiting purposes.
 
-### package_info_response_lobby_h Function
+### LobbyMSG Package InfoResponseLobby Function
 
-The `package_info_response_lobby_h` function is responsible for spoofing certain network details in the `InfoResponseLobby` structure before the message is sent. It overrides security-related information, IP addresses, and other parameters to make the response appear as though it is coming from a different or spoofed source.
+The `LobbyMSG Package InfoResponseLobby` function is responsible for spoofing certain network details in the `InfoResponseLobby` structure before the message is sent. It overrides security-related information, IP addresses, and other parameters to make the response appear as though it is coming from a different or spoofed source.
 
 #### Key Actions:
 1. **Security ID and Key Spoofing**:
@@ -516,49 +518,82 @@ The `package_info_response_lobby_h` function is responsible for spoofing certain
 5. **Lobby Parameters**:
    - The `ugcVersion` is set to `999`, and network and main mode values are modified to represent invalid or spoofed configurations.
 
-#### Example:
-- **Security ID and Key**: Replaces the real security identifiers with values from the configuration (`configs.spoofed_security_id` and `configs.spoofed_security_key`).
-- **IP Address**: Spoofs the sender's IP address (`configs.spoofed_ip_address`) and sets a fake port.
-- **Lobby Name**: Changes the lobby name to "Nidavellir > u" and the UGC name to "^5Nidavellir".
+#### Security Note:
+- **Spoofing** network details can be used for malicious purposes or testing but is considered unethical or illegal in most contexts. Always ensure that spoofing is only used in a controlled environment with permission.
 
-#### Function Flow:
-- The function checks if the `packageType` in `lobby_msg` is `PACKAGE_TYPE_WRITE`.
-- If true, it performs the spoofing operations, such as modifying the security ID, key, IP address, and other parameters.
-- Finally, it calls `Msg_InfoResponsePackage` to send the modified message.
+#### Spoofed Values:
+- **IP Address**: `spoofed_ip_address = { 1, 1, 1, 1 }`
+- **Security ID**: `spoofed_security_id = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF }`
+- **Security Key**: `spoofed_security_key = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x10, 0x32, 0x54, 0x76, 0x98, 0xBA, 0xDC, 0xFE }`
 
-#### Code Example:
+---
 
-```cpp
-const static auto Msg_InfoResponsePackage = reinterpret_cast<bool(*)(structures::InfoResponseLobby * info, structures::LobbyMsg * lobbyMsg)>(offsets::get_aslr_address(0x1EDAFC0));
+## Mutable Client Info
 
-bool __fastcall package_info_response_lobby_h(structures::InfoResponseLobby* lobby, structures::LobbyMsg* lobby_msg)
-{
-    if (lobby_msg->packageType == structures::PACKAGE_TYPE_WRITE)
-    {
-        for (int i = 0; i < 8; ++i)
-        {
-            lobby->secId.ab[i] = configs.spoofed_security_id[i];
-        }
+The **Mutable Client Info** category is responsible for modifying the client-side information related to the player's game progress, hero selection, and other mutable attributes. This function allows the manipulation of various parameters, such as arena points, hero loadouts, medals, and progression data, typically used for testing or exploiting game features.
 
-        for (int i = 0; i < 16; ++i)
-        {
-            lobby->secKey.ab[i] = configs.spoofed_security_key[i];
-        }
+### MsgMutableClientInfo Function
 
-        for (int i = 0; i < 4; ++i)
-        {
-            lobby->serializedAdr.xnaddr.addrBuff.ab.ipv4.octets[i] = configs.spoofed_ip_address[i];
-        }
+The `MsgMutableClientInfo` function modifies several mutable fields within the `MsgMutableClientInfo` structure, including arena points, hero info, and player progression. These changes are made before the function calls the original function `MsgMutableClientInfo` to ensure the spoofed data is used in the game context.
 
-        lobby->serializedAdr.xnaddr.addrBuff.ab.port = 1;
+#### Key Actions:
+1. **Arena Points and Skill**:
+   - Sets `arenaPoints` to `99999` and `arenaSkill` to `99.99f`, providing maximum arena rewards.
 
-        strncpy(lobby->hostName, "Nidavellir > u", 32);
-        strncpy(lobby->ugcName, "^5Nidavellir", 32);
+2. **Medals and Double XP**:
+   - Sets `unlockedMedals` to `0xFFFF`, implying all medals are unlocked.
+   - Sets `doubleXPGroupMask` to `0xFFFFFFFF`, enabling double XP for all groups.
 
-        lobby->ugcVersion = 999;
-        lobby->lobbyParams.networkMode = structures::LOBBY_NETWORKMODE_UNKNOWN;
-        lobby->lobbyParams.mainMode = structures::LOBBY_MAINMODE_INVALID;
-    }
+3. **Probation End Time**:
+   - Resets probation end times to `0`, effectively removing any probation restrictions.
 
-    return Msg_InfoResponsePackage(lobby, lobby_msg);
-}
+4. **Hero Info Modifications**:
+   - Changes hero info such as selected character type, mode, head type, loadout slot, and character items to specific values, effectively customizing the player's hero.
+
+5. **Hero Item Colors**:
+   - Sets colors for selected character items to `10` for all available slots, allowing for a uniform look.
+
+6. **Progression Data**:
+   - Sets progression fields, including `rank` to `0`, `prestige` to `999`, `paragonRank` to `12345`, and `paragonIconId` to `300`, to maximum values that could be used for testing or exploits.
+
+#### Functionality Overview:
+- The function modifies various mutable client information fields to spoof high levels of progression and rewards in the game. After the modifications, it calls the original function `MsgMutableClientInfo_p` to pass the modified data to the game system.
+
+#### Security Note:
+- **Modifying** client information in this way can be considered unethical or illegal in some contexts. It should only be used for controlled testing or development purposes.
+
+#### Spoofed Values:
+- **Arena Points**: `99999`
+- **Arena Skill**: `99.99f`
+- **Unlocked Medals**: `0xFFFF`
+- **Double XP Group Mask**: `0xFFFFFFFF`
+- **Probation End Time**: `0`
+- **Selected Hero Info**: Multiple fields, including `selectedCharacterType`, `selectedCharacterMode`, and others set to `10`
+- **Progression Data**: `rank = 0`, `prestige = 999`, `paragonRank = 12345`, `paragonIconId = 300`
+
+---
+
+#### `Live_PresencePack Function`
+
+The **Presence Spoofing** feature allows manipulation of a player's online presence data, such as activity, party status, available slots, and other information visible to other players. This can be used to customize how a player appears in the game, potentially bypassing certain restrictions or altering their in-game presence.
+
+This function customizes a player's presence information before it is sent in a message. It modifies various aspects of the player's status, including:
+
+- **Primary Presence**: Sets the presence to **online**.
+- **Activity**: Sets the activity to **looking for a party** in a multiplayer context.
+- **Context**: Specifies the context as **multiplayer theater**.
+- **Joinable Status**: Marks the game as **not joinable**, meaning other players cannot join.
+- **Difficulty**: Sets the difficulty to **4**.
+- **Playlist ID**: Assigns a playlist ID of **1**.
+- **Map ID**: Sets the map ID to **30000**.
+- **Game Type**: Sets the game type to **Fractured**.
+- **Party Information**:
+  - **Total Party Count**: Sets the total number of players in the party to the maximum possible value (`std::numeric_limits<int>::max()`).
+  - **Max Party Size**: Sets the maximum party size to the maximum possible value.
+  - **Available Party Count**: Sets the available party slots to the maximum possible value.
+- **Party Members**: Sets the gamertag of each of the 18 party members to `^6.gg/nidavellir`.
+
+This function allows for full customization of a player's presence status in the game, allowing for the creation of specific appearances and configurations in the multiplayer environment.
+
+---
+
