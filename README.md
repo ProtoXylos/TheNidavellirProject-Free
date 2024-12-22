@@ -72,7 +72,37 @@ This patch applies similar checks to those used in connectionless packet handlin
 
 - **Overflow Protection**: The patch also includes overflow protection to handle potentially oversized or malformed server command packets. If any overflows are detected, the packet is discarded to prevent crashes or unintended behavior.
 
+#### **Material Management Fixes**
+
+**Problem**:  
+Malformed material or model strings in the game can lead to issues such as invalid replacements or rendering errors. Improper paths, invalid sequences, and incorrect model names can cause crashes or unwanted behaviors when processing material and model-related data. This can also affect the game's user interface and overall stability, especially when dealing with dynamic asset loading and replacement operations.
+
+**Solution**:  
+This patch improves the material management system by adding robust validation and handling for material and model strings. It introduces additional checks to prevent crashes and rendering issues caused by invalid or malformed data:
+
+- **Pattern Type Detection**:  
+  The patch introduces a system to detect various pattern types within material and model strings. The patterns are identified based on specific byte sequences, and each pattern is categorized into one of the following types:
+  
+  - **InvalidMaterial**: Identifies strings that match invalid material patterns and replaces them with a predefined invalid material string.
+  - **InvalidModel**: Identifies strings that match invalid model patterns and replaces them with a predefined invalid model string.
+  - **InvalidSequence**: Identifies invalid sequences of characters in model strings and replaces them to prevent issues with loading or rendering.
+  - **InvalidLocalization**: Identifies invalid localization patterns (e.g., misformatted localization strings) and replaces them with predefined invalid localization strings.
+  - **Valid**: Strings that pass the validation are considered valid and remain unchanged.
+
+- **Model String Replacement**:  
+  The `UI_DoModelStringReplacement` function handles the replacement of invalid material or model strings with appropriate fallback strings. It checks for invalid patterns in the input string and applies the corresponding replacement based on the detected pattern type. If the string is valid, it remains unchanged. The patch ensures that invalid strings do not propagate through the system, avoiding rendering issues or crashes.
+
+- **Path Pattern Validation**:  
+  The patch also validates the paths used in material or model references. It checks the length of node names and ensures that there are no excessive dot sequences (e.g., `..`) or invalid node name lengths. Paths that fail these checks are considered invalid and are not processed, preventing errors during model or material loading.
+
+- **Overflow Protection**:  
+  Additional checks are added to prevent buffer overflows when handling strings. The patch ensures that strings are safely copied into destination buffers, and if the size exceeds the allocated buffer, the copy operation is truncated. This helps prevent crashes due to invalid memory accesses.
+
+- **UI Model Functions**:  
+  The patch includes fixes to functions that manage UI models, including `UI_Model_GetModelFromPath`, `UIModel_CreateModelFromPath`, and `UIModel_AllocateNode`. These functions now properly validate the model path before processing it, ensuring that only valid paths are used to create or load models. Invalid paths are ignored, preventing errors when trying to load models or materials.
+
 ---
+
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
