@@ -194,13 +194,13 @@ This patch hooks into the `LobbyVM_OnDisconnect offset(0x1EEFEC0)` function to l
   By logging the reason for each disconnection and notifying the system when a kick or drop occurs, the patch strengthens monitoring and security by making it harder for attackers to hide their actions. It also ensures that any unusual or unexpected disconnection events are flagged and logged.
 
 ---
-#### **MSG_ReadByte Hook Protection**
+#### **MSG_ReadByte offset(0x2155450) Hook Protection**
 
 **Problem**:  
-The function `sub_2155450`, also known as `MSG_ReadByte`, is used to read a byte from a message buffer. In certain cases, attackers could manipulate the message processing to bypass or exploit buffer reading, leading to unexpected behavior, data corruption, or crashes.
+The function `sub_2155450`, also known as `MSG_ReadByte offset(0x2155450)`, is used to read a byte from a message buffer. In certain cases, attackers could manipulate the message processing to bypass or exploit buffer reading, leading to unexpected behavior, data corruption, or crashes.
 
 **Solution**:  
-This patch hooks into the `MSG_ReadByte` function and modifies its behavior to add proper boundary checks and ensure the message processing is robust. The patch ensures that the reading of bytes is done safely by checking whether the current reading position is within the bounds of the allocated buffer.
+This patch hooks into the `MSG_ReadByte offset(0x2155450)` function and modifies its behavior to add proper boundary checks and ensure the message processing is robust. The patch ensures that the reading of bytes is done safely by checking whether the current reading position is within the bounds of the allocated buffer.
 
 - **Boundary Check**:  
   The patch checks that the `v3` (current reading position) does not exceed the bounds of the buffer. If the reading position is out of bounds, the function will set a flag and return early to prevent accessing invalid memory. This helps prevent buffer overflows or accessing memory that shouldn't be accessed.
@@ -210,6 +210,30 @@ This patch hooks into the `MSG_ReadByte` function and modifies its behavior to a
 
 - **Early Exit on Invalid Read**:  
   If the function detects an invalid read (e.g., reading from an out-of-bounds location), it will immediately return `0`, signaling that the read operation was unsuccessful. This early exit prevents unintended memory access and improves stability.
+
+---
+#### **sub_2C3D960 Hook Protection**
+
+**Problem**:  
+The `sub_2C3D960` function performs complex memory copying operations, including handling overlapping memory and managing different sizes of data. If improperly handled, this function could lead to memory corruption, buffer overflows, or unintended data manipulation, especially when dealing with unaligned memory or large data blocks.
+
+**Solution**:  
+This patch modifies the `sub_2C3D960` function to improve memory safety and prevent potential exploits such as buffer overflows and data corruption.
+
+- **Boundary Check & Safe Memory Copying**:  
+  The patch checks whether memory copying operations might overlap and ensures that copying does not go beyond the bounds of the allocated memory. If the copying operation is small (less than or equal to `0x10`), it uses a direct approach. Otherwise, it handles more complex cases, such as overlapping memory, in a way that ensures no invalid memory access occurs.
+
+- **Handling Unaligned Memory**:  
+  If the memory addresses are unaligned (not divisible by 8), the patch ensures that smaller chunks of memory are copied correctly. This includes manually handling byte, word, and dword copies and ensuring that memory is copied in a manner that avoids misalignment issues.
+
+- **Optimized Memory Copying**:  
+  For larger memory regions (greater than or equal to `0x1000`), the patch uses `memcpy` to efficiently handle large blocks of data. It ensures that memory is copied in blocks of 4KB or smaller, avoiding unnecessary overhead.
+
+- **Flag-Based Copying Behavior**:  
+  The patch introduces a flag (`dword_1A8A4F94`) to control whether the copy should be performed using `memcpy` or through the manual, byte-wise copying approach. If the flag indicates a specific condition, `memcpy` is used to improve performance and safety.
+
+- **Safe Data Handling**:  
+  The patch also ensures that the function safely handles data of different sizes (e.g., single bytes, short words, dwords) by adjusting the copy operation based on the size of the data being copied.
 
 ---
 
