@@ -269,6 +269,34 @@ This patch modifies the `sub_1E91820` function to prevent any operations related
   By disabling this function, the patch safeguards against exploits involving player presence requests, party data retrieval, or interactions with Demonware systems. This can prevent players from gaining unauthorized access to sensitive information or tampering with the client party status.
 
 ---
+#### **Lobby Message Handling Patches (Overflow/Underflow Prevention)**
+
+**Problem**:  
+The functions related to printing debug messages in the lobby message handling can be vulnerable to crashes caused by buffer overflow or underflow issues. Exploits targeting these functions could cause instability and security risks in the game.
+
+**Solution**:  
+The following patches have been implemented to mitigate potential overflow and underflow issues within the lobby message handling functions, providing added protection against crash attempts:
+
+1. **LobbyMsgRW_PrintDebugMessage Patch (Overflow Prevention)**:
+   - **Purpose**: This function is used for printing debug messages within the lobby message handling system.
+   - **Issue**: An unchecked overflow condition can lead to crashes, especially when invalid or malicious data is passed.
+   - **Fix**: This patch intercepts the function and checks for potential overflows. If an overflow attempt is detected, the function immediately returns, logging the event and notifying that the overflow attempt has been prevented.
+     - The function returns `true` to ensure that the process doesn't continue with potentially damaging data.
+     - A notification message `attempt detected and prevented` is logged for security monitoring.
+
+2. **LobbyMsgRW_PrintMessage Patch (Underflow Prevention)**:
+   - **Purpose**: Similar to the first patch, this function handles the printing of messages within the lobby system, but in this case, it deals with underflow conditions.
+   - **Issue**: An underflow could occur if the message length or buffer size is improperly calculated, potentially leading to instability.
+   - **Fix**: The patch intercepts the call to prevent any underflow issues. If such an issue is detected, the function immediately returns and logs the event with a notification message.
+     - The message `attempt detected and prevented` is logged to provide security visibility.
+     - The function returns `true` to halt any further processing of potentially damaging data.
+
+- **Security and Stability**:
+  - These patches protect the game from potential crashes caused by malicious data and buffer overflow/underflow attempts.
+  - By logging and preventing such issues, the patches improve the stability of the game, reducing the risk of unexpected crashes.
+
+---
+
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
