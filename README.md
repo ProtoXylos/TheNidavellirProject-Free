@@ -194,8 +194,24 @@ This patch hooks into the `LobbyVM_OnDisconnect offset(0x1EEFEC0)` function to l
   By logging the reason for each disconnection and notifying the system when a kick or drop occurs, the patch strengthens monitoring and security by making it harder for attackers to hide their actions. It also ensures that any unusual or unexpected disconnection events are flagged and logged.
 
 ---
+#### **MSG_ReadByte Hook Protection**
 
+**Problem**:  
+The function `sub_2155450`, also known as `MSG_ReadByte`, is used to read a byte from a message buffer. In certain cases, attackers could manipulate the message processing to bypass or exploit buffer reading, leading to unexpected behavior, data corruption, or crashes.
 
+**Solution**:  
+This patch hooks into the `MSG_ReadByte` function and modifies its behavior to add proper boundary checks and ensure the message processing is robust. The patch ensures that the reading of bytes is done safely by checking whether the current reading position is within the bounds of the allocated buffer.
+
+- **Boundary Check**:  
+  The patch checks that the `v3` (current reading position) does not exceed the bounds of the buffer. If the reading position is out of bounds, the function will set a flag and return early to prevent accessing invalid memory. This helps prevent buffer overflows or accessing memory that shouldn't be accessed.
+
+- **Safe Byte Reading**:  
+  The patch ensures that only valid bytes are read by verifying that the current position is within the valid range before attempting to access memory. If the position is valid, the function reads the byte and updates the reading position (`v5`) accordingly.
+
+- **Early Exit on Invalid Read**:  
+  If the function detects an invalid read (e.g., reading from an out-of-bounds location), it will immediately return `0`, signaling that the read operation was unsuccessful. This early exit prevents unintended memory access and improves stability.
+
+---
 
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
