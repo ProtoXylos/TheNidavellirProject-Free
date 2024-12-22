@@ -122,6 +122,24 @@ This patch addresses these issues by improving the handling of notetrack time re
   In case of an error during the notetrack time retrieval, the patch triggers a notification with the message "error occurred while retrieving notetrack time." This ensures that errors are properly reported, making it easier to identify and fix issues related to notetrack time retrieval.
 
 ---
+#### **Lobby UI Host Data Transmitted Fix**
+
+**Problem**:  
+In multiplayer lobbies, the `LobbyUI_HostDataTransmitted` function may fail to properly handle the transmission of host data, leading to issues with data synchronization or improper handling of lobby state during host transmissions. This can result in inconsistent or broken lobby behaviors, particularly when transmitting important host-related information.
+
+**Solution**:  
+This patch addresses the issue by modifying the behavior of the `LobbyUI_HostDataTransmitted offset(0x1F029F0)` function to ensure reliable transmission of host data and proper handling of lobby states. The solution includes the following:
+
+- **Reliable Host Data Transmission**:  
+  The patch provides a fixed implementation for the `LobbyUI_HostDataTransmitted offset(0x1F029F0)` function, ensuring that data transmission for host information is always handled correctly. The function now returns a fixed value of `true`, indicating that the host data transmission is always considered successful, preventing any failures during the process.
+
+- **Simplified Handling for Lobby Type**:  
+  The function accepts the `LobbyType` parameter, but the patch ensures that the logic for processing different lobby types is simplified. By always returning `true`, the patch bypasses any complex checks or potential failures, ensuring a smooth and uninterrupted host data transmission process in all scenarios.
+
+- **Prevents Data Synchronization Issues**:  
+  With this modification, the patch ensures that host data is consistently transmitted without the risk of synchronization issues that might otherwise occur if the transmission was unsuccessful or encountered errors.
+
+---
 
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
