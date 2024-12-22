@@ -14,7 +14,7 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 
 ### Patches  
 
-#### **Crash Prevention for Malformed Packets (Instant Message Crash)**  
+#### **Crash Prevention for Malformed Packets (Instant Message Crash) in `dw_Instant_Dispatch_Message`**  
 
 **Problem**:  
 The crash occurs when malformed or empty messages are sent via the `dw_Instant_Dispatch_Message` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Exploiters can send such malformed messages, causing buffer overflows or invalid memory accesses, which leads to crashes.
@@ -33,6 +33,9 @@ The patch prevents this issue by adding additional checks to the message process
 - **Overflow Protection**: Additional checks are added to prevent buffer overflow scenarios when handling message data. If an overflow is detected, the message is discarded to prevent a crash.
 
 ---
+
+### More Patches Coming  
+This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
 ### How to Use  
 To apply the patch, simply compile the tool and replace the existing message handling code with the updated functions. This will enable the additional checks and protection mechanisms described above, ensuring a more secure multiplayer experience.
