@@ -9,7 +9,7 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 - Prevents crashes caused by malformed or malicious packets.  
 - Implements security checks to detect and stop exploit attempts.  
 - Spoofing features, including network address manipulation (IP spoofing).  
-- Free and open-source for the community.  
+- Allows users to kick and exploit other users who may be cheating, ensuring fair gameplay in your session.  
 
 **Note**: These are just a few of the many patches and spoofing features available. Due to ethical considerations and to prevent other "cheats" from using this information to gain an unfair advantage in Black Ops 3, further details cannot be disclosed.
 
