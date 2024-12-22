@@ -14,7 +14,8 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 
 ### Patches  
 
-#### **Crash Prevention for Malformed Packets (Instant Message Crash)**  
+#### **Crash Prevention for Malformed Packets (Instant Message Crash)** 
+
 **Problem**:  
 The crash is caused by malformed or empty messages being sent via the `dw_Instant_Dispatch_Message` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Specifically, the function `send_instant_crash` used by exploiters can send a message with no valid content, potentially leading to buffer overflows or invalid memory accesses.
 
@@ -25,7 +26,26 @@ To prevent this, the patch modifies the way messages are handled before they are
    The patch checks if the message is empty or contains only whitespace. If this is the case, the message is ignored.
    
    ```cpp
+
    if (message == nullptr || message_size == 0 || std::all_of(message, message + message_size, [](unsigned char c) { return std::isspace(c); }))
    {
        return true; // Ignored empty or whitespace-only message
    }
+
+```
+
+#### **Invalid Message Read Handling:**
+The patch ensures that the message's size and read count are within expected bounds. If the message has been truncated or incorrectly sized, it prevents further processing.
+
+   ```cpp
+
+if (msg.readcount < msg.cursize)
+{
+    type = functions::MSG_ReadByte(&msg);
+}
+else 
+{
+    return true; // Invalid readcount
+}
+
+```
