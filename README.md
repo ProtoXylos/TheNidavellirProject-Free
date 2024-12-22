@@ -269,6 +269,7 @@ This patch modifies the `sub_1E91820` function to prevent any operations related
   By disabling this function, the patch safeguards against exploits involving player presence requests, party data retrieval, or interactions with Demonware systems. This can prevent players from gaining unauthorized access to sensitive information or tampering with the client party status.
 
 ---
+
 #### **Lobby Message Handling Patches (Overflow/Underflow Prevention)**
 
 **Problem**:  
@@ -295,6 +296,42 @@ The following patches have been implemented to mitigate potential overflow and u
   - These patches protect the game from potential crashes caused by malicious data and buffer overflow/underflow attempts.
   - By logging and preventing such issues, the patches improve the stability of the game, reducing the risk of unexpected crashes.
 
+---
+
+### inspect_state_game Function
+
+The `inspect_state_game` function ensures the integrity and security of the state game message package by applying multiple validation checks. These checks prevent potential crashes, invalid data processing, and malicious exploit attempts.
+
+#### Key Fixes and Validations:
+- **Overflow and Underflow Protections:**
+  - Validates array sizes (e.g., `clientlist`, `votes`) to ensure they do not exceed predefined limits:
+    - `clientlist` is limited to 18 elements.
+    - `votes` is capped at 216 elements.
+  - If these limits are exceeded, the function triggers overflow protection and prevents further processing.
+  
+- **Packet Validation:**
+  - Ensures proper packing of individual fields in the state game message:
+    - Integer and string fields (e.g., `serverstatus`, `gametype`, `matchhashlow`, `status`) are validated.
+    - Array fields (e.g., `clientlist`, `votes`) are validated to ensure correct packing of elements.
+  
+- **Handling Invalid Packets:**
+  - If any field is missing or contains invalid data, the function triggers a security notification and returns an error code, stopping further processing of the malicious packet.
+  
+- **Specific Fixes:**
+  - **Overflow Protection:** Prevents buffer overflow in fields such as `votecount` and `plistentries`.
+  - **Invalid Packet Detection:** Invalid data is rejected, and a security notification is triggered.
+  - **Client and Vote Processing:** Each client and vote entry is validated to ensure the data is packed correctly.
+
+#### Example Error Codes:
+- **21**: Invalid packet detected.
+- **22**: Overflow protection triggered.
+- **5**: Bad packet due to missing or invalid data.
+- **7**: Bad packet due to invalid vote data.
+- **26**: Crash attempt via vote count overflow.
+- **28**: Crash attempt due to excess elements in `votes` array.
+- **37**: Crash attempt due to vote count buffer overflow.
+- **39**: Crash attempt due to excess elements in `clientlist` array.
+  
 ---
 
 ### More Patches Coming  
