@@ -277,14 +277,14 @@ The functions related to printing debug messages in the lobby message handling c
 **Solution**:  
 The following patches have been implemented to mitigate potential overflow and underflow issues within the lobby message handling functions, providing added protection against crash attempts:
 
-1. **LobbyMsgRW_PrintDebugMessage Patch (Overflow Prevention)**:
+1. **LobbyMsgRW_PrintDebugMessage offset(0x1EF6B80) Patch (Overflow Prevention)**:
    - **Purpose**: This function is used for printing debug messages within the lobby message handling system.
    - **Issue**: An unchecked overflow condition can lead to crashes, especially when invalid or malicious data is passed.
    - **Fix**: This patch intercepts the function and checks for potential overflows. If an overflow attempt is detected, the function immediately returns, logging the event and notifying that the overflow attempt has been prevented.
      - The function returns `true` to ensure that the process doesn't continue with potentially damaging data.
      - A notification message `attempt detected and prevented` is logged for security monitoring.
 
-2. **LobbyMsgRW_PrintMessage Patch (Underflow Prevention)**:
+2. **LobbyMsgRW_PrintMessage offset(0x1EF6E40) Patch (Underflow Prevention)**:
    - **Purpose**: Similar to the first patch, this function handles the printing of messages within the lobby system, but in this case, it deals with underflow conditions.
    - **Issue**: An underflow could occur if the message length or buffer size is improperly calculated, potentially leading to instability.
    - **Fix**: The patch intercepts the call to prevent any underflow issues. If such an issue is detected, the function immediately returns and logs the event with a notification message.
