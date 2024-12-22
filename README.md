@@ -254,7 +254,21 @@ This patch adds additional validation to the `Steam_AuthTicketHandle offset(0x1E
   If the ticket passes the validation checks, the function proceeds to call the original `Steam_AuthTicketHandle offset(0x1EB4780)` function to process the ticket normally.
 
 ---
+#### **sub_1E91820 Patch (Demonware / Client Party Info / Player Presence)**
 
+**Problem**:  
+The `sub_1E91820` function appears to be involved in handling player presence requests, which could include retrieving or interacting with party or session data. Improper handling of these requests may lead to vulnerabilities, such as unauthorized access to presence or party information, or even manipulation of the client party state.
+
+**Solution**:  
+This patch modifies the `sub_1E91820` function to prevent any operations related to player presence, party information, or Demonware interaction. By neutralizing this function, it avoids potential exploits related to unauthorized manipulation of player presence or client party states.
+
+- **No-Operation (NOP) Implementation**:  
+  The function is explicitly modified to return immediately without performing any action (`return;`), ensuring that no data related to player presence or party interactions is processed or manipulated. This eliminates the potential for unwanted behavior or vulnerabilities.
+
+- **Security and Stability**:  
+  By disabling this function, the patch safeguards against exploits involving player presence requests, party data retrieval, or interactions with Demonware systems. This can prevent players from gaining unauthorized access to sensitive information or tampering with the client party status.
+
+---
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
