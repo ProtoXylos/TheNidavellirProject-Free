@@ -56,6 +56,23 @@ The patch adds the following safeguards to handle connectionless packets:
 
 ---
 
+#### **Preventing Invalid or Malicious Server Command Packets in `SVClientCommandPacket offset(0x2253E00)`**
+
+**Problem**:  
+Similar to connectionless packets, server-side command packets can also be exploited by attackers to disrupt the server or execute remote actions. These server command packets can carry invalid data or commands that bypass normal validation, allowing malicious packets to affect the server. The issue arises when such packets are processed by the `SVClientCommandPacket` function.
+
+**Solution**:  
+This patch applies similar checks to those used in connectionless packet handling, but specifically targets server-side commands:
+
+- **Command Validation**: The patch ensures that only valid server command packets are processed. If the command packet is invalid or contains unauthorized data, it is discarded.
+
+- **Message Type Check**: The patch checks the packet type and ensures that it matches expected valid types. Invalid packets are ignored to prevent potential exploitation.
+
+- **IP Address Logging**: Malicious or invalid packets from unauthorized sources are logged with their originating IP address, helping detect and prevent server-side exploit attempts.
+
+- **Overflow Protection**: The patch also includes overflow protection to handle potentially oversized or malformed server command packets. If any overflows are detected, the packet is discarded to prevent crashes or unintended behavior.
+
+---
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
