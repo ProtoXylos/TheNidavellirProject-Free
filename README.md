@@ -38,6 +38,24 @@ The patch prevents this issue by adding additional checks to the message process
 
 ---
 
+#### **Preventing Invalid or Malicious Connectionless Packets in `CL_DispatchConnectionlessPacket`**
+
+**Problem**:  
+Connectionless packets, such as voice type or other non-standard packets, can be exploited to send malicious data that can potentially disrupt the game. The issue occurs when invalid or unauthorized packets are processed by the `CL_DispatchConnectionlessPacket` function. This can lead to unwanted behaviors, including crashes or unauthorized actions.
+
+**Solution**:  
+The patch adds the following safeguards to handle connectionless packets:
+
+- **Voice Type Packet Handling**: The patch ensures that only valid voice packets are processed by the `CL_HandleVoiceTypePacket` function. Any invalid packets are ignored, preventing potential abuse of voice packets.
+
+- **Command Argument Validation**: The patch validates the arguments in connectionless commands. It ensures that only legitimate command arguments are allowed. If invalid or malformed arguments are detected, the packet is ignored, and an underflow prevention mechanism is triggered.
+
+- **Legitimate Packet Check**: The patch verifies the legitimacy of the packet type by checking if the first argument matches a predefined list of known valid packet types. If an invalid packet is detected, it is discarded, and the source IP address is logged for security purposes.
+
+- **Security Logging**: Invalid packets from untrusted sources are logged with their originating IP address, which helps monitor suspicious activity and prevent exploit attempts.
+
+---
+
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
