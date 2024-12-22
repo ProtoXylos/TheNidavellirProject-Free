@@ -92,7 +92,7 @@ This patch improves the material management system by adding robust validation a
   - **Valid**: Strings that pass the validation are considered valid and remain unchanged.
 
 - **Model String Replacement**:  
-  The `UI_DoModelStringReplacement` function handles the replacement of invalid material or model strings with appropriate fallback strings. It checks for invalid patterns in the input string and applies the corresponding replacement based on the detected pattern type. If the string is valid, it remains unchanged. The patch ensures that invalid strings do not propagate through the system, avoiding rendering issues or crashes.
+  The `UI_DoModelStringReplacement offset(0x1F334C0)` function handles the replacement of invalid material or model strings with appropriate fallback strings. It checks for invalid patterns in the input string and applies the corresponding replacement based on the detected pattern type. If the string is valid, it remains unchanged. The patch ensures that invalid strings do not propagate through the system, avoiding rendering issues or crashes.
 
 - **Path Pattern Validation**:  
   The patch also validates the paths used in material or model references. It checks the length of node names and ensures that there are no excessive dot sequences (e.g., `..`) or invalid node name lengths. Paths that fail these checks are considered invalid and are not processed, preventing errors during model or material loading.
@@ -101,7 +101,7 @@ This patch improves the material management system by adding robust validation a
   Additional checks are added to prevent buffer overflows when handling strings. The patch ensures that strings are safely copied into destination buffers, and if the size exceeds the allocated buffer, the copy operation is truncated. This helps prevent crashes due to invalid memory accesses.
 
 - **UI Model Functions**:  
-  The patch includes fixes to functions that manage UI models, including `UI_Model_GetModelFromPath`, `UIModel_CreateModelFromPath`, and `UIModel_AllocateNode`. These functions now properly validate the model path before processing it, ensuring that only valid paths are used to create or load models. Invalid paths are ignored, preventing errors when trying to load models or materials.
+  The patch includes fixes to functions that manage UI models, including `UI_Model_GetModelFromPath offset(0x2019670)`, `UIModel_CreateModelFromPath offset(0x2019080)`, and `UIModel_AllocateNode offset(0x2018DC0)`. These functions now properly validate the model path before processing it, ensuring that only valid paths are used to create or load models. Invalid paths are ignored, preventing errors when trying to load models or materials.
 
 ---
 
