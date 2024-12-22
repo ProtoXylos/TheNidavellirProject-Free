@@ -14,7 +14,7 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 
 ### Patches  
 
-#### **Crash and Popup Prevention for Malformed Packets (Instant Message Crash) in `dwInstantDispatchMessage`**  
+#### **Crash and Popup Prevention for Malformed Packets in `dwInstantDispatchMessage`**  
 
 **Problem**:  
 The crash occurs when malformed or empty messages are sent via the `dwInstantDispatchMessage` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Additionally, exploiters can use remote command buffer (Cbuf) messages or specific message types to trigger popups or crashes.
