@@ -140,6 +140,24 @@ This patch addresses the issue by modifying the behavior of the `LobbyUI_HostDat
   With this modification, the patch ensures that host data is consistently transmitted without the risk of synchronization issues that might otherwise occur if the transmission was unsuccessful or encountered errors.
 
 ---
+#### **ExecLuaCMD Hook Protection (Prevent Remote Code Execution)**
+
+**Problem**:  
+The `ExecLuaCMD offset(0x1F04B20)` function, which is responsible for executing Lua commands, could be vulnerable to remote code execution (RCE) attacks. Exploiters could inject malicious Lua code into the game environment, leading to arbitrary command execution, unauthorized access, and potential system compromise. This vulnerability is particularly concerning in multiplayer scenarios where untrusted clients might attempt to execute Lua commands on the server.
+
+**Solution**:  
+This patch addresses the RCE vulnerability by hooking the `ExecLuaCMD offset(0x1F04B20)` function and sanitizing the Lua environment. The solution includes the following:
+
+- **Sanitization of Lua Environment**:  
+  The patch intercepts the `ExecLuaCMD offset(0x1F04B20)` function and ensures that no potentially dangerous or unauthorized Lua commands are executed. Instead of executing the Lua command, the function simply triggers a notification, signaling that the Lua environment has been sanitized. This effectively blocks any malicious commands from being executed.
+
+- **Preventative Hooking**:  
+  The `ExecLuaCMD_hook` function is hooked in place of the original `ExecLuaCMD offset(0x1F04B20)` function. By doing so, it prevents the execution of any Lua commands that could otherwise exploit the system. This is a proactive defense measure that eliminates the risk of Lua-based RCE.
+
+- **Security Notification**:  
+  When the hook is triggered, a security notification is sent, indicating that the Lua environment has been sanitized. This provides visibility into the protection mechanism and helps with monitoring for any potential exploit attempts.
+
+---
 
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
