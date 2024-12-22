@@ -176,6 +176,25 @@ This patch mitigates the RCE vulnerability by hooking the `Lua_CmdParseArgs offs
   Upon triggering the hook, a security notification is displayed, indicating that an RCE attempt has been prevented. This serves as a real-time alert, providing insight into potential exploit attempts and enhancing the game's overall security posture.
 
 ---
+#### **Lobby Disconnect Protection in theLobbyVM_OnDisconnect offset(0x1EEFEC0)**
+
+**Problem**:  
+The function `LobbyVM_OnDisconnect offset(0x1EEFEC0)` is responsible for handling client disconnections in the lobby, including disconnections caused by various reasons, such as kicks or drops. Malicious users could attempt to manipulate this function to avoid detection or prevent proper logging of their disconnection reasons.
+
+**Solution**:  
+This patch hooks into the `LobbyVM_OnDisconnect offset(0x1EEFEC0)` function to log and notify about client disconnections. When a client disconnects, the patch identifies the disconnection reason and logs it with the client's identity. It helps prevent bypassing of disconnection messages and ensures proper logging of malicious or suspicious actions.
+
+- **Enhanced Logging and Identification**:  
+  The patch provides a more detailed log for disconnections, including the XUID and identity of the client disconnecting. It categorizes the disconnection reason using an enumerated type `LobbyDisconnectClient`, which includes values such as `KICK`, `DROP`, and `HOSTRELOAD`. This provides a clearer understanding of why a client disconnected.
+
+- **Detailed Disconnection Handling**:  
+  The patch ensures that each disconnection is mapped to a clear reason using the `clientToStringMap`, which maps each disconnection type to a string (e.g., "KICK", "DROP", "BADDLC"). This helps identify and track disconnections more accurately, preventing potential manipulation of disconnect reasons.
+
+- **Security and Monitoring**:  
+  By logging the reason for each disconnection and notifying the system when a kick or drop occurs, the patch strengthens monitoring and security by making it harder for attackers to hide their actions. It also ensures that any unusual or unexpected disconnection events are flagged and logged.
+
+---
+
 
 
 ### More Patches Coming  
