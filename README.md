@@ -298,9 +298,9 @@ The following patches have been implemented to mitigate potential overflow and u
 
 ---
 
-### inspect_state_game Function
+### LobbyMSG Inspect StateGame Function
 
-The `inspect_state_game` function ensures the integrity and security of the state game message package by applying multiple validation checks. These checks prevent potential crashes, invalid data processing, and malicious exploit attempts.
+The `LobbyMSG Inspect StateGame` function ensures the integrity and security of the state game message package by applying multiple validation checks. These checks prevent potential crashes, invalid data processing, and malicious exploit attempts.
 
 #### Key Fixes and Validations:
 - **Overflow and Underflow Protections:**
@@ -332,6 +332,39 @@ The `inspect_state_game` function ensures the integrity and security of the stat
 - **37**: Crash attempt due to vote count buffer overflow.
 - **39**: Crash attempt due to excess elements in `clientlist` array.
   
+---
+
+### LobbyMSG Inspect StatePrivate Function
+
+The `LobbyMSG Inspect StatePrivate` function ensures that the `lobbyMsg` received for a private lobby state is properly validated. It performs a series of integrity checks on the message to detect and prevent invalid packets, overflow attempts, and malicious exploitations.
+
+#### Key Fixes and Validations:
+- **Packet Validation:**
+  - Each field in the lobby message is validated for correctness using functions like `LobbyMsgRW_PackageInt`, `LobbyMsgRW_PackageUChar`, `LobbyMsgRW_PackageString`, and `LobbyMsgRW_PackageXuid`.
+  - If any field is missing or invalid, the function halts further processing and returns a specific error code.
+
+- **Overflow and Underflow Protections:**
+  - **Client List:** Ensures the number of clients does not exceed 18 (`clientcount`), preventing any potential overflow or underflow attempts.
+  - If the `clientcount` exceeds the limit, an underflow error is triggered, stopping further packet processing.
+  
+- **Nominee List Handling:**
+  - A separate check ensures that the `nomineelist` field does not contain more than 18 elements, preventing overflow attempts by exploiting the number of elements.
+
+- **Specific Fixes:**
+  - **Bad Packet Detection:** Invalid or corrupt packets are immediately rejected, and the function triggers a security notification.
+  - **Element Checks:** The function uses `LobbyMsgRW_PackageElement` to iterate through elements in `clientlist` and `nomineelist`, ensuring that each element is correctly packed.
+  - **XUID and Address Data:** XUIDs and other client-specific data are validated, ensuring integrity and security.
+  - **Overflow and Buffer Exploits:** The function detects attempts to exploit buffer overflows, protecting against common attack vectors like buffer overflow or element read-only exploits.
+
+#### Example Error Codes:
+- **1**: Bad packet detected (general invalid packet).
+- **2**: Client count exceeds allowed limit (overflow protection triggered).
+- **3**: Bad packet detected (specific to fields like `migratebits` or `lasthosttimems`).
+- **4**: General bad packet (after all validations).
+- **101**: Invalid packet in client data (during iteration of `clientlist`).
+- **102**: Exploit attempt detected via buffer overflow or element read-only exploit.
+- **103**: Exploit attempt detected via `nomineelist` overflow.
+
 ---
 
 ### More Patches Coming  
