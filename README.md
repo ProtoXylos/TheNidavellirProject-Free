@@ -14,10 +14,10 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 
 ### Patches  
 
-#### **Crash Prevention for Malformed Packets (Instant Message Crash) in `dw_Instant_Dispatch_Message`**  
+#### **Crash and Popup Prevention for Malformed Packets (Instant Message Crash) in `dwInstantDispatchMessage`**  
 
 **Problem**:  
-The crash occurs when malformed or empty messages are sent via the `dw_Instant_Dispatch_Message` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Exploiters can send such malformed messages, causing buffer overflows or invalid memory accesses, which leads to crashes.
+The crash occurs when malformed or empty messages are sent via the `dwInstantDispatchMessage` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Additionally, exploiters can use remote command buffer (Cbuf) messages to cause popups or unexpected behavior that impacts the user experience.
 
 **Solution**:  
 The patch prevents this issue by adding additional checks to the message processing flow:
@@ -28,7 +28,7 @@ The patch prevents this issue by adding additional checks to the message process
 
 - **Message Type Validation**: The patch checks for specific message types and sizes, ensuring only valid messages are processed. Suspicious message types or incorrect sizes are ignored.
 
-- **Command Buffer Exploit Prevention**: The patch specifically targets certain command buffer messages (`'e'` type) that could be exploited remotely and ensures they are ignored to avoid misuse.
+- **Command Buffer Exploit Prevention**: The patch specifically targets certain command buffer messages (`'e'` type) that could be exploited remotely, preventing the triggering of popups and other unwanted side effects.
 
 - **Overflow Protection**: Additional checks are added to prevent buffer overflow scenarios when handling message data. If an overflow is detected, the message is discarded to prevent a crash.
 
