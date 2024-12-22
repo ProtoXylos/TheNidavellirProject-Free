@@ -367,8 +367,198 @@ The `LobbyMSG Inspect StatePrivate` function ensures that the `lobbyMsg` receive
 
 ---
 
+### LobbyMSG Inspect ClientContent Function
+
+The `LobbyMSG Inspect ClientContent` function validates the content of the lobby message specifically related to client information. It checks for invalid packets, ensures the integrity of various fields, and prevents exploits such as large buffer sizes or invalid session and game modes.
+
+#### Key Fixes and Validations:
+- **Packet Validation:**
+  - The function uses `LobbyMsgRW_PackageUInt`, `LobbyMsgRW_PackageInt`, `LobbyMsgRW_PackageXuid`, `LobbyMsgRW_PackageUShort`, `LobbyMsgRW_PackageGlob`, and `LobbyMsgRW_PackageUChar` to validate the key fields of the lobby message:
+    - `datamask`: Ensures proper data masking.
+    - `lobbytype`: Validates the lobby type.
+    - `clientxuid`: Verifies the XUID of the client.
+    - `buffersize`: Checks the size of the buffer.
+    - `buffer`: Ensures that the buffer data is within the expected size.
+    - `sessionmode`: Ensures the session mode is valid.
+    - `gamemode`: Ensures the game mode is valid.
+
+- **Range Checks:**
+  - **Client XUID Validation:** Ensures that the `clientxuid` field does not exceed a specified maximum value (175,000).
+  - **Buffer Size Validation:** Ensures that the `buffersize` does not exceed the maximum allowed value (175,000), which prevents any malicious attempts to overflow the buffer.
+
+- **Bad Packet Detection:**
+  - If any of the validation checks fail or if the fields exceed the allowed limits, the packet is considered invalid and rejected.
+  - The function triggers a security notification (`notify::security`) to alert that an invalid packet was detected.
+
+#### Example Error Codes:
+- **1**: Invalid packet detected (any field validation failure, such as exceeding the buffer size or XUID range).
+
+---
+
+### LobbyMSG Inspect DemoState Function
+
+The `LobbyMSG Inspect DemoState` function is responsible for validating and inspecting the demo state within the lobby message. It ensures that all required fields are properly packed, checks for overflow conditions, and prevents invalid or exploitative packets from being processed.
+
+#### Key Fixes and Validations:
+- **Packet Validation:**
+  - The function uses `LobbyMsgRW_PackageInt` and `LobbyMsgRW_PackageBool` to validate the following fields within the demo state:
+    - `lobbytype`: Ensures that the lobby type is valid.
+    - `paused`: Checks if the demo is paused.
+    - `servertime`: Verifies the server time.
+    - `timescale`: Checks the time scale value.
+    - `client`: Ensures the client field is correctly populated.
+    - `kframeindex`: Validates the current keyframe index.
+    - `lstjumpedkframe`: Ensures the last jumped keyframe is valid.
+    - `kframejumpcount`: Verifies the count of keyframe jumps.
+    - `lstkframetime`: Checks the last keyframe time.
+
+- **Overflow Checks:**
+  - **Timescale Validation:** Ensures that the `timescale` field does not exceed a specified value of `10`, preventing excessive time manipulation.
+  - **Server Time Validation:** Ensures that the `servertime` field is not negative.
+  - **Client Validation:** Ensures that the `client` field is not negative, which could indicate a malformed packet.
+
+- **Bad Packet Detection:**
+  - If any of the validation checks fail, the packet is considered invalid and rejected.
+  - The function triggers an overflow attempt notification (`notify::overflow`) to alert that an invalid packet was detected.
+
+#### Example Error Codes:
+- **1**: Invalid packet detected (failure in packet validation or overflow attempts).
+
+---
+
+### LobbyMSG Inspect JoinRequest Function
+
+The `LobbyMSG Inspect JoinRequest` function processes and validates a join request message. It checks the contents of the message for various data fields, ensuring that they are correctly packed and within valid ranges. This function also includes overflow protection for certain fields.
+
+#### Key Data Fields Processed:
+- **targetlobby:** Identifies the target lobby for the join request.
+- **sourcelobby:** Specifies the source lobby from which the join request originates.
+- **jointype:** Defines the type of the join request (e.g., invitation, direct join).
+- **probedxuid:** The XUID of the client probing for the join request.
+- **playlistid:** The ID of the playlist being requested for joining.
+- **playlistver:** The version of the playlist being requested.
+- **ffotdver:** The version of the "Feature of the Day" content.
+- **networkmode:** Specifies the network mode for the join request.
+- **netchecksum:** A checksum for the network data.
+- **protocol:** The protocol version used in the join request.
+- **changelist:** The changelist version for the content being joined.
+- **pingband:** A measure of the network ping band.
+- **dlcbits:** Represents downloadable content bits in the request.
+- **joinnonce:** A unique identifier for the join request, preventing replay attacks.
+- **chunkStatus:** An array representing the status of each content chunk in the join request.
+- **isStarterPack:** Indicates if the client has the starter pack for the game.
+- **password:** A password for joining a protected lobby.
+- **memberCount:** The current number of members in the lobby.
+
+#### Overflow Protection:
+- **memberCount Check:** The function ensures that the `memberCount` does not exceed a threshold of `18` to prevent overloading the lobby. If this limit is exceeded, an overflow attempt is detected and prevented.
+- **Error Handling:** If any field fails to validate or if any required data is missing, the function returns an error (`true`), indicating a failed join request.
+
+#### Example Error Handling:
+- **Overflow Attempt:** If the `memberCount` exceeds `17`, a notification (`notify::overflow`) is triggered to prevent the attempt.
+- **Invalid Data:** If any of the data fields are improperly packed or fail validation, the function returns `true` to indicate an invalid packet.
+
+#### Example Error Codes:
+- **1**: Invalid or failed join request (packet validation or overflow attempt).
+- **0**: Successful join request (all checks passed).
+
+---
+
+### LobbyMSG Inspect HostHeartbBeat Function
+
+The `LobbyMSG Inspect HostHeartbBeat` function processes the heartbeat message from the host in the lobby. It validates the message by checking and extracting several data fields related to the host's state and the list of nominated players. This function also includes checks to ensure that the number of elements (nominated players) does not exceed a set limit.
+
+#### Key Data Fields Processed:
+- **heartbeatnum:** The number of the current heartbeat message.
+- **lobbytype:** The type of lobby for the heartbeat message.
+- **lasthosttimems:** The timestamp of the last host's heartbeat, measured in milliseconds.
+- **nomineelist:** The list of nominated players for the current lobby. This list is capped to a maximum of 18 players.
+
+#### Logic:
+- The function starts by extracting the **heartbeatnum**, **lobbytype**, and **lasthosttimems** fields from the heartbeat message.
+- Then it processes the **nomineelist**, which contains XUIDs for nominated players. It checks each element in the list and extracts the **xuid** for each player. The list is limited to 18 players. If more than 18 elements are found, an error code (`101`) is returned to indicate an overflow.
+
+#### Overflow Protection:
+- **Nominee List Limit:** The function ensures that the number of nominated players does not exceed 18. If there are more than 18 players in the list, it returns an error (`101`).
+- **Error Handling:** If any of the fields fail validation or if the nominee list exceeds the allowed size, the function returns `true` to indicate an invalid message.
+
+#### Example Error Codes:
+- **1**: Invalid message or failed validation.
+- **101**: Overflow attempt detected (more than 18 nominated players).
+- **0**: Successful processing of the heartbeat message.
+
+---
+
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
 
-### How to Use  
-To apply the patch, simply compile the tool and replace the existing message handling code with the updated functions. This will enable the additional checks and protection mechanisms described above, ensuring a more secure multiplayer experience.
+## Spoofing
+
+The **Spoofing** category involves modifying or "spoofing" network-related information to impersonate or hide the true identity of the sender. This can include spoofing security identifiers, IP addresses, and other critical network parameters. The functions in this category modify lobby-related data to simulate different network configurations, often for testing or exploiting purposes.
+
+### package_info_response_lobby_h Function
+
+The `package_info_response_lobby_h` function is responsible for spoofing certain network details in the `InfoResponseLobby` structure before the message is sent. It overrides security-related information, IP addresses, and other parameters to make the response appear as though it is coming from a different or spoofed source.
+
+#### Key Actions:
+1. **Security ID and Key Spoofing**:
+   - The function replaces the original security ID (`secId`) and security key (`secKey`) in the `InfoResponseLobby` structure with the spoofed values from the configuration.
+   
+2. **IP Address Spoofing**:
+   - The function modifies the IP address (`serializedAdr.xnaddr.addrBuff.ab.ipv4.octets`) to a spoofed IP address, making it appear as though the response is coming from a different remote address.
+
+3. **Port Configuration**:
+   - The port is set to `1`, further disguising the actual network communication details.
+
+4. **Hostname and UGC Name Spoofing**:
+   - The function changes the `hostName` and `ugcName` fields to preset values, "Nidavellir > u" and "^5Nidavellir", respectively, to simulate different lobby names.
+
+5. **Lobby Parameters**:
+   - The `ugcVersion` is set to `999`, and network and main mode values are modified to represent invalid or spoofed configurations.
+
+#### Example:
+- **Security ID and Key**: Replaces the real security identifiers with values from the configuration (`configs.spoofed_security_id` and `configs.spoofed_security_key`).
+- **IP Address**: Spoofs the sender's IP address (`configs.spoofed_ip_address`) and sets a fake port.
+- **Lobby Name**: Changes the lobby name to "Nidavellir > u" and the UGC name to "^5Nidavellir".
+
+#### Function Flow:
+- The function checks if the `packageType` in `lobby_msg` is `PACKAGE_TYPE_WRITE`.
+- If true, it performs the spoofing operations, such as modifying the security ID, key, IP address, and other parameters.
+- Finally, it calls `Msg_InfoResponsePackage` to send the modified message.
+
+#### Code Example:
+
+```cpp
+const static auto Msg_InfoResponsePackage = reinterpret_cast<bool(*)(structures::InfoResponseLobby * info, structures::LobbyMsg * lobbyMsg)>(offsets::get_aslr_address(0x1EDAFC0));
+
+bool __fastcall package_info_response_lobby_h(structures::InfoResponseLobby* lobby, structures::LobbyMsg* lobby_msg)
+{
+    if (lobby_msg->packageType == structures::PACKAGE_TYPE_WRITE)
+    {
+        for (int i = 0; i < 8; ++i)
+        {
+            lobby->secId.ab[i] = configs.spoofed_security_id[i];
+        }
+
+        for (int i = 0; i < 16; ++i)
+        {
+            lobby->secKey.ab[i] = configs.spoofed_security_key[i];
+        }
+
+        for (int i = 0; i < 4; ++i)
+        {
+            lobby->serializedAdr.xnaddr.addrBuff.ab.ipv4.octets[i] = configs.spoofed_ip_address[i];
+        }
+
+        lobby->serializedAdr.xnaddr.addrBuff.ab.port = 1;
+
+        strncpy(lobby->hostName, "Nidavellir > u", 32);
+        strncpy(lobby->ugcName, "^5Nidavellir", 32);
+
+        lobby->ugcVersion = 999;
+        lobby->lobbyParams.networkMode = structures::LOBBY_NETWORKMODE_UNKNOWN;
+        lobby->lobbyParams.mainMode = structures::LOBBY_MAINMODE_INVALID;
+    }
+
+    return Msg_InfoResponsePackage(lobby, lobby_msg);
+}
