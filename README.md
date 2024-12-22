@@ -104,6 +104,24 @@ This patch improves the material management system by adding robust validation a
   The patch includes fixes to functions that manage UI models, including `UI_Model_GetModelFromPath offset(0x2019670)`, `UIModel_CreateModelFromPath offset(0x2019080)`, and `UIModel_AllocateNode offset(0x2018DC0)`. These functions now properly validate the model path before processing it, ensuring that only valid paths are used to create or load models. Invalid paths are ignored, preventing errors when trying to load models or materials.
 
 ---
+#### **Notetrack Fix**
+
+**Problem**:  
+The animation system may experience issues when handling notetrack data, leading to errors or undefined behavior when attempting to retrieve or manage the notetrack time associated with animations. Specifically, problems occur when the game attempts to retrieve the notetrack time using invalid or incorrect parameters, causing crashes or incorrect behavior.
+
+**Solution**:  
+This patch addresses these issues by improving the handling of notetrack time retrieval in the animation system. The solution involves adding a safe mechanism to handle notetrack retrieval errors and logging them for debugging purposes:
+
+- **Notetrack Time Retrieval**:  
+  The patch adds a modified version of the `XAnimGetNotetrackTime offset(0x2342100)` function. This function is responsible for retrieving the notetrack time associated with a given animation index and name. When an invalid or incorrect value is encountered, the function now handles the error gracefully by logging the error and returning a default value (`-1.0f`), which prevents further processing of invalid data.
+
+- **Logging**:  
+  The patch integrates logging functionality within the `XAnimGetNotetrackTime offset(0x2342100)` function to log the parameters of the failed notetrack retrieval attempt. This includes the animation index and the name length of the requested notetrack, providing valuable information for debugging.
+
+- **Error Notification**:  
+  In case of an error during the notetrack time retrieval, the patch triggers a notification with the message "error occurred while retrieving notetrack time." This ensures that errors are properly reported, making it easier to identify and fix issues related to notetrack time retrieval.
+
+---
 
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
