@@ -104,7 +104,7 @@ This patch improves the material management system by adding robust validation a
   The patch includes fixes to functions that manage UI models, including `UI_Model_GetModelFromPath offset(0x2019670)`, `UIModel_CreateModelFromPath offset(0x2019080)`, and `UIModel_AllocateNode offset(0x2018DC0)`. These functions now properly validate the model path before processing it, ensuring that only valid paths are used to create or load models. Invalid paths are ignored, preventing errors when trying to load models or materials.
 
 ---
-#### **Notetrack Fix**
+#### **Notetrack Time Fix**
 
 **Problem**:  
 The animation system may experience issues when handling notetrack data, leading to errors or undefined behavior when attempting to retrieve or manage the notetrack time associated with animations. Specifically, problems occur when the game attempts to retrieve the notetrack time using invalid or incorrect parameters, causing crashes or incorrect behavior.
@@ -125,7 +125,7 @@ This patch addresses these issues by improving the handling of notetrack time re
 #### **Lobby UI Host Data Transmitted Fix**
 
 **Problem**:  
-In multiplayer lobbies, the `LobbyUI_HostDataTransmitted` function may fail to properly handle the transmission of host data, leading to issues with data synchronization or improper handling of lobby state during host transmissions. This can result in inconsistent or broken lobby behaviors, particularly when transmitting important host-related information.
+In multiplayer lobbies, the `LobbyUI_HostDataTransmitted offset(0x1F029F0)` function may fail to properly handle the transmission of host data, leading to issues with data synchronization or improper handling of lobby state during host transmissions. This can result in inconsistent or broken lobby behaviors, particularly when transmitting important host-related information.
 
 **Solution**:  
 This patch addresses the issue by modifying the behavior of the `LobbyUI_HostDataTransmitted offset(0x1F029F0)` function to ensure reliable transmission of host data and proper handling of lobby states. The solution includes the following:
