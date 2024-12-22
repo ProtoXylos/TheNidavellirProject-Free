@@ -14,7 +14,7 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 
 ### Patches  
 
-#### **Crash and Popup Prevention for Malformed Packets in `dwInstantDispatchMessage`**  
+#### **Crash and Popup Prevention for Malformed Packets in `dwInstantDispatchMessage offset(0x143A600)`**  
 
 **Problem**:  
 The crash occurs when malformed or empty messages are sent via the `dwInstantDispatchMessage` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. .
@@ -38,15 +38,15 @@ The patch prevents this issue by adding additional checks to the message process
 
 ---
 
-#### **Preventing Invalid or Malicious Connectionless Packets in `CL_DispatchConnectionlessPacket`**
+#### **Preventing Invalid or Malicious Connectionless Packets in `CLDispatchConnectionlessPacket offset(0x134CD50)`**
 
 **Problem**:  
-Connectionless packets, such as voice type or other non-standard packets, can be exploited to send malicious data that can potentially disrupt the game. The issue occurs when invalid or unauthorized packets are processed by the `CL_DispatchConnectionlessPacket` function. This can lead to unwanted behaviors, including crashes or unauthorized actions.
+Connectionless packets, such as voice type or other non-standard packets, can be exploited to send malicious data that can potentially disrupt the game. The issue occurs when invalid or unauthorized packets are processed by the `CLDispatchConnectionlessPacket` function. This can lead to unwanted behaviors, including crashes or unauthorized actions.
 
 **Solution**:  
 The patch adds the following safeguards to handle connectionless packets:
 
-- **Voice Type Packet Handling**: The patch ensures that only valid voice packets are processed by the `CL_HandleVoiceTypePacket` function. Any invalid packets are ignored, preventing potential abuse of voice packets.
+- **Voice Type Packet Handling**: The patch ensures that only valid voice packets are processed by the `CLHandleVoiceTypePacket` function. Any invalid packets are ignored, preventing potential abuse of voice packets.
 
 - **Command Argument Validation**: The patch validates the arguments in connectionless commands. It ensures that only legitimate command arguments are allowed. If invalid or malformed arguments are detected, the packet is ignored, and an underflow prevention mechanism is triggered.
 
