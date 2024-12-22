@@ -17,7 +17,7 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 #### **Crash and Popup Prevention for Malformed Packets (Instant Message Crash) in `dwInstantDispatchMessage`**  
 
 **Problem**:  
-The crash occurs when malformed or empty messages are sent via the `dwInstantDispatchMessage` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Additionally, exploiters can use remote command buffer (Cbuf) messages to cause popups or unexpected behavior that impacts the user experience.
+The crash occurs when malformed or empty messages are sent via the `dwInstantDispatchMessage` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Additionally, exploiters can use remote command buffer (Cbuf) messages or specific message types to trigger popups or crashes.
 
 **Solution**:  
 The patch prevents this issue by adding additional checks to the message processing flow:
@@ -26,9 +26,13 @@ The patch prevents this issue by adding additional checks to the message process
   
 - **Invalid Message Size Handling**: Messages that don't match the expected size or have an invalid read count are discarded. This prevents potential buffer overflows and memory corruption.
 
-- **Message Type Validation**: The patch checks for specific message types and sizes, ensuring only valid messages are processed. Suspicious message types or incorrect sizes are ignored.
+- **Message Type Validation**: The patch checks for specific message types and sizes, ensuring only valid messages are processed. Suspicious message types or incorrect sizes are ignored:
 
-- **Command Buffer Exploit Prevention**: The patch specifically targets certain command buffer messages (`'e'` type) that could be exploited remotely, preventing the triggering of popups and other unwanted side effects.
+  - **Type `102`**: This is identified as a crash message type. If a message of this type is received with size 102, the patch prevents it from being processed to avoid crashing the game.
+  
+  - **Type `2`**: This type corresponds to a popup message, which is blocked to prevent disruptive popups during gameplay.
+
+  - **Type `e`**: This type corresponds to remote command buffer (Cbuf) messages, which can be exploited remotely. The patch ensures that these messages are ignored to prevent potential misuse.
 
 - **Overflow Protection**: Additional checks are added to prevent buffer overflow scenarios when handling message data. If an overflow is detected, the message is discarded to prevent a crash.
 
