@@ -244,9 +244,6 @@ The `Steam_AuthTicketHandle offset(0x1EB4780)` function processes authentication
 **Solution**:  
 This patch adds additional validation to the `Steam_AuthTicketHandle offset(0x1EB4780)` function to prevent unauthorized access and handle potentially malicious tickets more securely.
 
-- **Sender Identity Validation**:  
-  The patch first retrieves the identity of the sender (`sender_id`) using the provided `from_xuid`. It checks if the sender is an actual client or a known entry in the "shit list" (a list of users marked for disconnection or restricted access), ensuring that only valid clients are processed.
-
 - **Message Size Check**:  
   The patch ensures that the size of the authentication message is valid by checking if it is greater than 1024 bytes, with a specific index condition (`index - 21 == 0`). If the size exceeds this threshold, the message is flagged as potentially malicious, and the processing is halted.
 
