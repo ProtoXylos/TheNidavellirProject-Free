@@ -14,56 +14,25 @@ The Nidavellir Project is a robust and free tool designed to fix numerous bugs a
 
 ### Patches  
 
-#### **Crash Prevention for Malformed Packets (Instant Message Crash)** 
+#### **Crash Prevention for Malformed Packets (Instant Message Crash)**  
 
 **Problem**:  
-The crash is caused by malformed or empty messages being sent via the `dw_Instant_Dispatch_Message` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Specifically, the function `dwInstantSendMessage` used by exploiters can send a message with no valid content, potentially leading to buffer overflows or invalid memory accesses.
+The crash occurs when malformed or empty messages are sent via the `dw_Instant_Dispatch_Message` function, which processes messages in multiplayer sessions. These messages can lead to crashes if they are empty, contain invalid data, or are sent in a way that bypasses size validation. Exploiters can send such malformed messages, causing buffer overflows or invalid memory accesses, which leads to crashes.
 
 **Solution**:  
-To prevent this, the patch modifies the way messages are handled before they are dispatched. Key steps include:
+The patch prevents this issue by adding additional checks to the message processing flow:
 
-1. **Empty Message Handling**:  
-   The patch checks if the message is empty or contains only whitespace. If this is the case, the message is ignored.
-   
-```cpp
+- **Empty Message Handling**: The patch ensures that messages which are empty or contain only whitespace are ignored, preventing processing of invalid data.
+  
+- **Invalid Message Size Handling**: Messages that don't match the expected size or have an invalid read count are discarded. This prevents potential buffer overflows and memory corruption.
 
-   if (message == nullptr || message_size == 0 || std::all_of(message, message + message_size, [](unsigned char c) { return std::isspace(c); }))
-   {
-       return true; // Ignored empty or whitespace-only message
-   }
+- **Message Type Validation**: The patch checks for specific message types and sizes, ensuring only valid messages are processed. Suspicious message types or incorrect sizes are ignored.
 
+- **Command Buffer Exploit Prevention**: The patch specifically targets certain command buffer messages (`'e'` type) that could be exploited remotely and ensures they are ignored to avoid misuse.
 
-if (msg.readcount < msg.cursize)
-{
-    type = functions::MSG_ReadByte(&msg);
-}
-else 
-{
-    return true; // Invalid readcount
-}
+- **Overflow Protection**: Additional checks are added to prevent buffer overflow scenarios when handling message data. If an overflow is detected, the message is discarded to prevent a crash.
 
-if ((type == 102 && message_size == 102) || (type == 102 && message_size == 2))
-{
-    if (message_size == 102)
-        return true; // Ignore a invalid message size
-    else if (message_size == 2)
-        return true; // Ignore 'Lobby not joinable' popup
-}
+---
 
-if (type == 'e')
-{
-    return true; // Ignoring remote 'Cbuf' (Command Buffer)
-}
-
-if (!msg.overflowed)
-{
-    // Further message handling...
-}
-else
-{
-    return true; // Prevent message overflow
-}
-```
-
-
-
+### How to Use  
+To apply the patch, simply compile the tool and replace the existing message handling code with the updated functions. This will enable the additional checks and protection mechanisms described above, ensuring a more secure multiplayer experience.
