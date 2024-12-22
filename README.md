@@ -72,6 +72,8 @@ This patch applies similar checks to those used in connectionless packet handlin
 
 - **Overflow Protection**: The patch also includes overflow protection to handle potentially oversized or malformed server command packets. If any overflows are detected, the packet is discarded to prevent crashes or unintended behavior.
 
+---
+
 #### **Material Management Fixes**
 
 **Problem**:  
