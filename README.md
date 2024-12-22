@@ -236,6 +236,27 @@ This patch modifies the `sub_2C3D960` function to improve memory safety and prev
   The patch also ensures that the function safely handles data of different sizes (e.g., single bytes, short words, dwords) by adjusting the copy operation based on the size of the data being copied.
 
 ---
+#### **Steam_AuthTicketHandle offset(0x1EB4780) Protection**
+
+**Problem**:  
+The `Steam_AuthTicketHandle offset(0x1EB4780)` function processes authentication tickets, which are essential for verifying the legitimacy of players attempting to connect to the server. Without proper validation, attackers could send malicious or malformed messages, potentially leading to exploits such as unauthorized access or server crashes.
+
+**Solution**:  
+This patch adds additional validation to the `Steam_AuthTicketHandle offset(0x1EB4780)` function to prevent unauthorized access and handle potentially malicious tickets more securely.
+
+- **Sender Identity Validation**:  
+  The patch first retrieves the identity of the sender (`sender_id`) using the provided `from_xuid`. It checks if the sender is an actual client or a known entry in the "shit list" (a list of users marked for disconnection or restricted access), ensuring that only valid clients are processed.
+
+- **Message Size Check**:  
+  The patch ensures that the size of the authentication message is valid by checking if it is greater than 1024 bytes, with a specific index condition (`index - 21 == 0`). If the size exceeds this threshold, the message is flagged as potentially malicious, and the processing is halted.
+
+- **Protection Notification**:  
+  If a suspicious or malformed authentication ticket is detected, the patch notifies the system that the protection mechanism has triggered, providing details of the sender.
+
+- **Fallback to Original Function**:  
+  If the ticket passes the validation checks, the function proceeds to call the original `Steam_AuthTicketHandle offset(0x1EB4780)` function to process the ticket normally.
+
+---
 
 ### More Patches Coming  
 This is just the first in a series of patches that will address various other vulnerabilities and crash exploits within **Call of Duty: Black Ops 3**. Future updates will further improve stability and security across multiplayer and lobby systems.
